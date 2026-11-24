@@ -1,0 +1,8 @@
+../target/
+.git/
+tripsync/.gitignore
+../.env
+.idea/
+*.iml
+uploads/
+.env
