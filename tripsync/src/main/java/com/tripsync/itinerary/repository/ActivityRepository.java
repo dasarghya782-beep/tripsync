@@ -10,5 +10,4 @@ public interface ActivityRepository extends JpaRepository<Activity,Long> {
 
     List<Activity> findByItineraryIdOrderByDisplayOrderAsc(Long itineraryId);
     Optional<Activity> findByIdAndItineraryId(Long id, Long itineraryId);
-    List<Activity> findByItineraryTripOrderByDisplayOrderAsc(Long tripId);
 }
