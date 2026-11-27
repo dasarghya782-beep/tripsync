@@ -1,7 +1,9 @@
 package com.tripsync.common.validation;
 
+import com.tripsync.common.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -56,15 +58,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException exception,
                                                                  HttpServletRequest request){
-        ApiErrorResponse response = new ApiErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                "Request body is missing or contains invalid values",
-                request.getRequestURI(),
-                Map.of()
-        );
-        return ResponseEntity.badRequest().body(response);
+        return build(HttpStatus.BAD_REQUEST,
+                "Request body is missing or contains invalid values", request);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
@@ -83,11 +78,38 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatus(ResponseStatusException exception, HttpServletRequest request){
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+        String message = exception.getReason() != null
+                ? exception.getReason()
+                : "Request could not be completed";
+        return build(status, message, request);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException exception,
+                                                                  HttpServletRequest request){
+        return build(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException exception,
+                                                           HttpServletRequest request){
+        return build(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException exception,
+                                                                HttpServletRequest request){
+        return build(HttpStatus.CONFLICT,
+                "The request conflicts with existing data", request);
+    }
+
+    private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message,
+                                                   HttpServletRequest request){
         ApiErrorResponse response = new ApiErrorResponse(
                 LocalDateTime.now(),
                 status.value(),
                 status.getReasonPhrase(),
-                exception.getReason()!=null?exception.getReason():"Request could not be completed",
+                message,
                 request.getRequestURI(),
                 Map.of()
         );

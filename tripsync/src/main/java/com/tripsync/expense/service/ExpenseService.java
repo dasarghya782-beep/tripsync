@@ -1,5 +1,6 @@
 package com.tripsync.expense.service;
 
+import com.tripsync.common.exception.ResourceNotFoundException;
 import com.tripsync.expense.dto.CreateExpenseRequest;
 import com.tripsync.expense.dto.ExpenseSplitRequest;
 import com.tripsync.expense.entity.Expense;
@@ -32,7 +33,7 @@ public class ExpenseService {
     @Transactional
     public Expense createExpense(Long tripId, Long paidByUserId, CreateExpenseRequest request){
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(()-> new IllegalArgumentException("Trip not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Trip not found"));
         if (!tripMemberRepository.existsByTripIdAndUserId(tripId,paidByUserId)){
             throw new IllegalArgumentException("Payment user is not a trip member");
         }
@@ -55,7 +56,7 @@ public class ExpenseService {
         }
         User paidBy = userRepository.findById(paidByUserId)
                 .orElseThrow(()->
-                        new IllegalArgumentException("User not found"));
+                        new ResourceNotFoundException("User not found"));
 
         Expense expense = new Expense();
         expense.setTrip(trip);
@@ -68,7 +69,7 @@ public class ExpenseService {
         Expense savedExpense = expenseRepository.save(expense);
         for (ExpenseSplitRequest split: request.splits()){
             User splitUser = userRepository.findById(split.userId())
-                    .orElseThrow(()-> new IllegalArgumentException("User not found"));
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found"));
             ExpenseSplit expenseSplit = new ExpenseSplit();
             expenseSplit.setExpense(savedExpense);
             expenseSplit.setUser(splitUser);

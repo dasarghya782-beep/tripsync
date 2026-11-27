@@ -1,5 +1,6 @@
 package com.tripsync.settlement.service;
 
+import com.tripsync.common.exception.ResourceNotFoundException;
 import com.tripsync.settlement.dto.CreateSettlementRequest;
 import com.tripsync.settlement.entity.Settlement;
 import com.tripsync.settlement.repository.SettlementRepository;
@@ -34,7 +35,7 @@ public class SettlementService {
         }
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(()->
-                        new IllegalArgumentException("Trip not found"));
+                        new ResourceNotFoundException("Trip not found"));
 
         if (!tripMemberRepository.existsByTripIdAndUserId(tripId,payerId)){
             throw new IllegalArgumentException("Payer is not a member of this trip");
@@ -44,10 +45,10 @@ public class SettlementService {
         }
         User payer = userRepository.findById(payerId)
                 .orElseThrow(()->
-                        new IllegalArgumentException("Payer not found"));
+                        new ResourceNotFoundException("Payer not found"));
         User payee = userRepository.findById(request.payeeId())
                 .orElseThrow(()->
-                        new IllegalArgumentException("Payee not found"));
+                        new ResourceNotFoundException("Payee not found"));
 
         Settlement settlement = new Settlement();
         settlement.setTrip(trip);

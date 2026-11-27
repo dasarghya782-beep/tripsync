@@ -19,7 +19,7 @@ public class SettlementController {
     private final UserRepository userRepository;
     private final SettlementService settlementService;
 
-    @PostMapping("/settlements")
+    @PostMapping()
     public ResponseEntity<Void> createSettlement(
             @PathVariable Long tripId,
             @Valid @RequestBody CreateSettlementRequest request,
